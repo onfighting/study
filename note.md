@@ -129,9 +129,9 @@ $ git commit
 
 ```
 $ git commit -m "Story 182: Fix benchmarks for speed"
-    [master]: created 463dc4f: "Fix benchmarks for speed"
-    2 files changed, 3 insertions(+), 0 deletions(-)
-    create mode 100644 README
+[master]: created 463dc4f: "Fix benchmarks for speed"
+2 files changed, 3 insertions(+), 0 deletions(-)
+create mode 100644 README
 ```
 
 好，现在你已经创建了第一个提交！可以看到，提交后它会告诉你，当前是在哪个分支（master）提交的，本次提交的完整 SHA-1 校验和是什么（`463dc4f`），以及在本次提交中，有多少文件修订过，多少行添改和删改过。
@@ -177,15 +177,15 @@ $ git status
 
 ```
 $ git rm grit.gemspec
-    rm 'grit.gemspec'
-    $ git status
-    # On branch master
-    #
-    # Changes to be committed:
-    # (use "git reset HEAD <file>..." to unstage)
-    #
-    # deleted: grit.gemspec
-    #
+rm 'grit.gemspec'
+$ git status
+# On branch master
+#
+# Changes to be committed:
+# (use "git reset HEAD <file>..." to unstage)
+#
+# deleted: grit.gemspec
+#
 ```
 
 最后提交的时候，该文件就不再纳入版本管理了。如果删除之前修改过并且已经放到暂存区域的话，则必须要用强制删除选项 `-f`（译注：即 force 的首字母），以防误删除文件后丢失修改的内容。
@@ -209,3 +209,137 @@ $ git rm \*~
 ```
 
 会递归删除当前目录及其子目录中所有 `~` 结尾的文件。
+
+### 移动文件
+
+不像其他的 VCS 系统，Git 并不跟踪文件移动操作。如果在 Git 中重命名了某个文件，仓库中存储的元数据并不会体现出这是一次改名操作。不过 Git 非常聪明，它会推断出究竟发生了什么，至于具体是如何做到的，我们稍后再谈。
+
+既然如此，当你看到 Git 的 `mv` 命令时一定会困惑不已。要在 Git 中对文件改名，可以这么做：
+
+```
+$ git mv file_from file_to
+```
+
+它会恰如预期般正常工作。实际上，即便此时查看状态信息，也会明白无误地看到关于重命名操作的说明：
+
+```
+$ git mv README.txt README
+$ git status
+# On branch master
+# Your branch is ahead of 'origin/master' by 1 commit.
+#
+# Changes to be committed:
+# (use "git reset HEAD <file>..." to unstage)
+#
+# renamed: README.txt -> README
+#
+```
+
+其实，运行 `git mv` 就相当于运行了下面三条命令：
+
+```
+$ mv README.txt README
+$ git rm README.txt
+$ git add README
+```
+
+如此分开操作，Git 也会意识到这是一次改名，所以不管何种方式都一样。当然，直接用 `git mv` 轻便得多，不过有时候用其他工具批处理改名的话，要记得在提交前删除老的文件名，再添加新的文件名。
+
+## 2.3 查看提交历史
+
+在提交了若干更新之后，又或者克隆了某个项目，想回顾下提交历史，可以使用 `git log` 命令查看。
+
+默认不用任何参数的话，`git log` 会按提交时间列出所有的更新，最近的更新排在最上面。 每次更新都有一个 SHA-1 校验和、作者的名字和电子邮件地址、提交时间，最后缩进一个段落显示提交说明。`git log` 有许多选项可以帮助你搜寻感兴趣的提交，接下来我们介绍些最常用的。
+
+```
+# -p 选项展开显示每次提交的内容差异，用 -2 则仅显示最近的两次更新
+$ git log -p -2		
+
+# --stat仅显示简要的增改行数统计，每个提交都列出了修改过的文件，以及其中添加和移除的行数，并在最后列出所有增减行数小计。
+$ git log --stat
+
+# --pretty 选项，可以指定使用完全不同于默认格式的方式展示提交历史。另外还有 short，full 和 fuller 可以用，展示的信息或多或少有些不同
+$ git log --pretty=oneline
+$ git log --pretty=short
+
+# 最有意思的是 format，可以定制要显示的记录格式，这样的输出便于后期编程提取分析
+$ git log --pretty=format:"%h - %an, %ar : %s"
+表 2-1 列出了常用的格式占位符写法及其代表的意义。
+
+选项 说明
+%H 提交对象（commit）的完整哈希字串
+%h 提交对象的简短哈希字串
+%T 树对象（tree）的完整哈希字串
+%t 树对象的简短哈希字串
+%P 父对象（parent）的完整哈希字串
+%p 父对象的简短哈希字串
+%an 作者（author）的名字
+%ae 作者的电子邮件地址
+%ad 作者修订日期（可以用 -date= 选项定制格式）
+%ar 作者修订日期，按多久以前的方式显示
+%cn 提交者(committer)的名字
+%ce 提交者的电子邮件地址
+%cd 提交日期
+%cr 提交日期，按多久以前的方式显示
+%s 提交说明
+
+# 用 oneline 或 format 时结合 --graph 选项，可以看到开头多出一些 ASCII 字符串表示的简单图形，形象地展示了每个提交所在的分支及其分化衍合情况。
+$ git log --pretty=format:"%h %s" --graph
+```
+
+表 2-2 还列出了一些其他常用的选项及其释义。
+
+```
+选项 说明
+    -p 按补丁格式显示每个更新之间的差异。
+    --stat 显示每次更新的文件修改统计信息。
+    --shortstat 只显示 --stat 中最后的行数修改添加移除统计。
+    --name-only 仅在提交信息后显示已修改的文件清单。
+    --name-status 显示新增、修改、删除的文件清单。
+    --abbrev-commit 仅显示 SHA-1 的前几个字符，而非所有的 40 个字符。
+    --relative-date 使用较短的相对时间显示（比如，“2 weeks ago”）。
+    --graph 显示 ASCII 图形表示的分支合并历史。
+    --pretty 使用其他格式显示历史提交信息。可用的选项包括 oneline，short，full，fuller 和 format（后跟指定格式）。
+```
+
+### 限制输出长度
+
+除了定制输出格式的选项之外，`git log` 还有许多非常实用的限制输出长度的选项，也就是只输出部分提交信息。之前我们已经看到过 `-2` 了，它只显示最近的两条提交，实际上，这是 `-<n>` 选项的写法，其中的 `n` 可以是任何自然数，表示仅显示最近的若干条提交。不过实践中我们是不太用这个选项的，Git 在输出所有提交时会自动调用分页程序（less），要看更早的更新只需翻到下页即可。
+
+另外还有按照时间作限制的选项，比如 `--since` 和 `--until`。下面的命令列出所有最近两周内的提交：
+
+```
+$ git log --since=2.weeks
+```
+
+你可以给出各种时间格式，比如说具体的某一天（“2008-01-15”），或者是多久以前（“2 years 1 day 3 minutes ago”）。
+
+还可以给出若干搜索条件，列出符合的提交。用 `--author` 选项显示指定作者的提交，用 `--grep` 选项搜索提交说明中的关键字。（请注意，如果要得到同时满足这两个选项搜索条件的提交，就必须用 `--all-match` 选项。否则，满足任意一个条件的提交都会被匹配出来）
+
+另一个真正实用的`git log`选项是路径(path)，如果只关心某些文件或者目录的历史提交，可以在 `git log` 选项的最后指定它们的路径。因为是放在最后位置上的选项，所以用两个短划线（`--`）隔开之前的选项和后面限定的路径名。
+
+表 2-3 还列出了其他常用的类似选项。
+
+```
+选项 说明
+    -(n) 仅显示最近的 n 条提交
+    --since, --after 仅显示指定时间之后的提交。
+    --until, --before 仅显示指定时间之前的提交。
+    --author 仅显示指定作者相关的提交。
+    --committer 仅显示指定提交者相关的提交。
+```
+
+来看一个实际的例子，如果要查看 Git 仓库中，2008 年 10 月期间，Junio Hamano 提交的但未合并的测试脚本（位于项目的 t/ 目录下的文件），可以用下面的查询命令：
+
+```
+$ git log --pretty="%h - %s" --author=gitster --since="2008-10-01" \
+    --before="2008-11-01" --no-merges -- t/
+    5610e3b - Fix testcase failure when extended attribute
+    acd3b9e - Enhance hold_lock_file_for_{update,append}()
+    f563754 - demonstrate breakage of detached checkout wi
+    d1a43f2 - reset --hard/read-tree --reset -u: remove un
+    51a94af - Fix "checkout --track -b newbranch" on detac
+    b0ad11e - pull: allow "git pull origin $something:$cur
+```
+
+## 2.5 远程仓库的使用
