@@ -1,12 +1,10 @@
 **前置条件：**
 
 1. 注册Github账号，创建新的repository项目
-
 2. 本地电脑安装git，生成key，并设置全区配置
-
 3. 在github中添加ssh key
-
 4. 在本地电脑git clone 项目
+
 
 
 
