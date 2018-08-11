@@ -340,4 +340,291 @@ $ git log --pretty="%h - %s" --author=gitster --since="2008-10-01" \
     b0ad11e - pull: allow "git pull origin $something:$cur
 ```
 
+## 2.4 撤销操作
+
+任何时候，你都有可能需要撤消刚才所做的某些操作。接下来会介绍一些基本的撤消操作相关的命令。请注意，有些撤销操作是不可逆的，所以请务必谨慎小心，一旦失误，就有可能丢失部分工作成果。
+
+### 修改最后一次提交
+
+有时候我们提交完了才发现漏掉了几个文件没有加，或者提交信息写错了。想要撤消刚才的提交操作，可以使用 `--amend` 选项重新提交：
+
+```
+$ git commit --amend
+```
+
+此命令将使用当前的暂存区域快照提交。如果刚才提交完没有作任何改动，直接运行此命令的话，相当于有机会重新编辑提交说明，但将要提交的文件快照和之前的一样。
+
+启动文本编辑器后，会看到上次提交时的说明，编辑它确认没问题后保存退出，就会使用新的提交说明覆盖刚才失误的提交。
+
+如果刚才提交时忘了暂存某些修改，可以先补上暂存操作，然后再运行 `--amend` 提交：
+
+```
+$ git commit -m 'initial commit'
+$ git add forgotten_file
+$ git commit --amend
+```
+
+上面的三条命令最终只是产生一个提交，第二个提交命令修正了第一个的提交内容。
+
+### 取消已经暂存的文件
+
+使用```git add . ```命令加到暂存区域的文件，可以用如下命令使其回到已修改未暂存的状态
+
+```
+git reset HEAD <file>...
+```
+
+### 取消对文件的修改（慎重）
+
+```
+git checkout -- <file>...
+```
+
+注意：这条命令有些危险，使用该命令让文件恢复到修改前的版本，对文件的所有修改会丢弃！
+
+
+
 ## 2.5 远程仓库的使用
+
+要参与任何一个 Git 项目的协作，必须要了解该如何管理远程仓库。远程仓库是指托管在网络上的项目仓库，可能会有好多个，其中有些你只能读，另外有些可以写。同他人协作开发某个项目时，需要管理这些远程仓库，以便推送或拉取数据，分享各自的工作进展。管理远程仓库的工作，包括添加远程库，移除废弃的远程库，管理各式远程库分支，定义是否跟踪这些分支，等等。本节我们将详细讨论远程库的管理和使用。
+
+### 查看当前的远程库
+
+```
+# 它会列出每个远程库的简短名字
+$ git remote	
+# 也可以加上 -v 选项（译注：此为 --verbose 的简写，取首字母），显示对应的克隆地址：
+$ git remote -v
+```
+
+### 添加远程仓库
+
+要添加一个新的远程仓库，可以指定一个简单的名字，以便将来引用，运行 git remote add [shortname] \[url]：
+
+```
+$ git remote
+  origin
+$ git remote add pb git://github.com/paulboone/ticgit.git
+$ git remote -v
+  origin git://github.com/schacon/ticgit.git
+  pb git://github.com/paulboone/ticgit.git
+```
+
+现在可以用字符串 `pb` 指代对应的仓库地址了。比如说，要抓取所有 Paul 有的，但本地仓库没有的信息，可以运行 `git fetch pb`：
+
+```
+$ git fetch pb
+    remote: Counting objects: 58, done.
+    remote: Compressing objects: 100% (41/41), done.
+    remote: Total 44 (delta 24), reused 1 (delta 0)
+    Unpacking objects: 100% (44/44), done.
+    From git://github.com/paulboone/ticgit
+    * [new branch] master -> pb/master
+    * [new branch] ticgit -> pb/ticgit
+```
+
+现在，Paul 的主干分支（master）已经完全可以在本地访问了，对应的名字是 `pb/master`，你可以将它合并到自己的某个分支，或者切换到这个分支，看看有些什么有趣的更新。
+
+### 从远程仓库抓取数据
+
+```
+$ git fetch [remote-name]
+```
+
+此命令会到远程仓库中拉取所有你本地仓库中还没有的数据。运行完成后，你就可以在本地访问该远程仓库中的所有分支，将其中某个分支合并到本地，或者只是取出某个分支，一探究竟。（我们会在第三章详细讨论关于分支的概念和操作。）
+
+如果是克隆了一个仓库，此命令会自动将远程仓库归于 origin 名下。所以，`git fetch origin` 会抓取从你上次克隆以来别人上传到此远程仓库中的所有更新（或是上次 fetch 以来别人提交的更新）。有一点很重要，需要记住，**fetch 命令只是将远端的数据拉到本地仓库，并不自动合并到当前工作分支**，只有当你确实准备好了，才能手工合并。
+
+如果设置了某个分支用于跟踪某个远端仓库的分支（参见下节及第三章的内容），可以使用 `git pull` 命令自动抓取数据下来，然后将远端分支自动合并到本地仓库中当前分支。在日常工作中我们经常这么用，既快且好。实际上，默认情况下 `git clone` 命令本质上就是自动创建了本地的 master 分支用于跟踪远程仓库中的 master 分支（假设远程仓库确实有 master 分支）。所以一般我们运行 `git pull`，目的都是要从原始克隆的远端仓库中抓取数据后，合并到工作目录中的当前分支。
+
+### 推送数据到远程仓库
+
+```
+$ git push [remote-name] [branch-name]
+```
+
+如果要把本地的 master 分支推送到 `origin` 服务器上（再次说明下，克隆操作会自动使用默认的 master 和 origin 名字），可以运行下面的命令：
+
+```
+$ git push origin master
+```
+
+只有在所克隆的服务器上有写权限，或者同一时刻没有其他人在推数据，这条命令才会如期完成任务。如果在你推数据前，已经有其他人推送了若干更新，那你的推送操作就会被驳回。你必须先把他们的更新抓取到本地，合并到自己的项目中，然后才可以再次推送。有关推送数据到远程仓库的详细内容见第三章。
+
+### 查看远程仓库信息
+
+我们可以通过命令 `git remote show [remote-name]` 查看某个远程仓库的详细信息，比如要看所克隆的 `origin` 仓库，可以运行：
+
+```
+$ git remote show origin
+```
+
+上面的例子非常简单，而随着使用 Git 的深入，`git remote show` 给出的信息可能会像这样：
+
+```
+$ git remote show origin
+    * remote origin
+    URL: git@github.com:defunkt/github.git
+    Remote branch merged with 'git pull' while on branch issues
+    issues
+    Remote branch merged with 'git pull' while on branch master
+    master
+    New remote branches (next fetch will store in remotes/origin)
+    caching
+    Stale tracking branches (use 'git remote prune')
+    libwalker
+    walker2
+    Tracked remote branches
+    acl
+    apiv2
+    dashboard2
+    issues
+    master
+    postgres
+    Local branch pushed with 'git push'
+    master:master
+```
+
+它告诉我们，运行 `git push` 时缺省推送的分支是什么（译注：最后两行）。它还显示了有哪些远端分支还没有同步到本地（译注：第六行的 `caching` 分支），哪些已同步到本地的远端分支在远端服务器上已被删除（译注：`Stale tracking branches` 下面的两个分支），以及运行 `git pull` 时将自动合并哪些分支（译注：前四行中列出的 `issues` 和 `master` 分支）。
+
+### 远程仓库的删除和重命名
+
+在新版 Git 中可以用 `git remote rename` 命令修改某个远程仓库在本地的简称，比如想把 `pb` 改成 `paul`，可以这么运行：
+
+```
+$ git remote rename pb paul
+```
+
+注意，对远程仓库的重命名，也会使对应的分支名称发生变化，原来的 `pb/master` 分支现在成了 `paul/master`。
+
+碰到远端仓库服务器迁移，或者原来的克隆镜像不再使用，又或者某个参与者不再贡献代码，那么需要移除对应的远端仓库，可以运行 `git remote rm`命令：
+
+```
+$ git remote rm paul
+$ git remote
+    origin
+```
+
+## 2.6 打标签
+
+同大多数 VCS 一样，Git 也可以对某一时间点上的版本打上标签。
+
+### 显示已有的标签
+
+显示的标签按字母顺序排列，所以标签的先后并不表示重要程度的轻重。
+
+```
+$ git tag
+```
+
+我们可以用特定的搜索模式列出符合条件的标签。在 Git 自身项目仓库中，有着超过 240 个标签，如果你只对 1.4.2 系列的版本感兴趣，可以运行下面的命令：
+
+```
+$ git tag -l 'v1.4.2.*'
+    v1.4.2.1
+    v1.4.2.2
+    v1.4.2.3
+    v1.4.2.4
+```
+
+### 新建标签
+
+Git 使用的标签有两种类型：轻量级的（lightweight）和含附注的（annotated）。轻量级标签就像是个不会变化的分支，实际上它就是个指向特定提交对象的引用。而含附注标签，实际上是存储在仓库中的一个独立对象，它有自身的校验和信息，包含着标签的名字，电子邮件地址和日期，以及标签说明，标签本身也允许使用 GNU Privacy Guard (GPG) 来签署或验证。一般我们都建议使用含附注型的标签，以便保留相关信息；当然，如果只是临时性加注标签，或者不需要旁注额外信息，用轻量级标签也没问题。
+
+创建一个含附注类型的标签非常简单，用 `-a` （译注：取 `annotated` 的首字母）指定标签名字即可：
+
+```
+$ git tag -a v1.4 -m 'my version 1.4'
+$ git tag
+    v0.1
+    v1.3
+    v1.4
+```
+
+而 `-m` 选项则指定了对应的标签说明，Git 会将此说明一同保存在标签对象中。如果没有给出该选项，Git 会启动文本编辑软件供你输入标签说明。
+
+可以使用 `git show` 命令查看相应标签的版本信息，并连同显示打标签时的提交对象。
+
+```
+$ git show v1.4
+```
+
+### 签署标签
+
+如果你有自己的私钥，还可以用 GPG 来签署标签，只需要把之前的 `-a` 改为 `-s` （译注： 取 `signed` 的首字母）即可：
+
+```
+$ git tag -s v1.5 -m 'my signed 1.5 tag'
+```
+
+### 轻量级标签
+
+轻量级标签实际上就是一个保存着对应提交对象的校验和信息的文件。要创建这样的标签，一个 `-a`，`-s` 或 `-m` 选项都不用，直接给出标签名字即可：
+
+```
+$ git tag v1.4-lw
+```
+
+### 验证标签
+
+可以使用 `git tag -v [tag-name]` （译注：取 `verify` 的首字母）的方式验证已经签署的标签。此命令会调用 GPG 来验证签名，所以你需要有签署者的公钥，存放在 keyring 中，才能验证。
+
+### 后期加注标签
+
+你甚至可以在后期对早先的某次提交加注标签。比如在下面展示的提交历史中：
+
+```
+$ git log --pretty=oneline
+    15027957951b64cf874c3557a0f3547bd83b3ff6 Merge branch 'experiment'
+    a6b4c97498bd301d84096da251c98a07c7723e65 beginning write support
+    0d52aaab4479697da7686c15f77a3d64d9165190 one more thing
+    6d52a271eda8725415634dd79daabbc4d9b6008e Merge branch 'experiment'
+    0b7434d86859cc7b8c3d5e1dddfed66ff742fcbc added a commit function
+    4682c3261057305bdd616e23b64b0857d832627b added a todo file
+    166ae0c4d3f420721acbb115cc33848dfcc2121a started write support
+    9fceb02d0ae598e95dc970b74767f19372d61af8 updated rakefile
+    964f16d36dfccde844893cac5b347e7b3d44abbc commit the todo
+    8a5cbc430f1a9c3d00faaeffd07798508422908a updated readme
+```
+
+我们忘了在提交 “updated rakefile” 后为此项目打上版本号 v1.2，没关系，现在也能做。只要在打标签的时候跟上对应提交对象的校验和（或前几位字符）即可：
+
+```
+$ git tag -a v1.2 9fceb02
+```
+
+### push标签
+
+默认情况下，`git push` 并不会把标签传送到远端服务器上，只有通过显式命令才能分享标签到远端仓库。其命令格式如同推送分支，运行 `git push origin [tagname]` 即可：
+
+```
+$ git push origin v1.5
+    Counting objects: 50, done.
+    Compressing objects: 100% (38/38), done.
+    Writing objects: 100% (44/44), 4.56 KiB, done.
+    Total 44 (delta 18), reused 8 (delta 1)
+    To git@github.com:schacon/simplegit.git
+    * [new tag] v1.5 -> v1.5
+```
+
+如果要一次推送所有本地新增的标签上去，可以使用 `--tags` 选项：
+
+```
+$ git push origin --tags
+    Counting objects: 50, done.
+    Compressing objects: 100% (38/38), done.
+    Writing objects: 100% (44/44), 4.56 KiB, done.
+    Total 44 (delta 18), reused 8 (delta 1)
+    To git@github.com:schacon/simplegit.git
+    * [new tag] v0.1 -> v0.1
+    * [new tag] v1.2 -> v1.2
+    * [new tag] v1.4 -> v1.4
+    * [new tag] v1.4-lw -> v1.4-lw
+    * [new tag] v1.5 -> v1.5
+```
+
+现在，其他人克隆共享仓库或拉取数据同步后，也会看到这些标签。
+
+
+
+# 3 Git分支
