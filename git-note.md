@@ -669,3 +669,5 @@ $ git commit -m 'initial commit of my project'
  
 
 图 3-3. 分支其实就是从某个提交对象往回看的历史
+
+master-modify-test
