@@ -1269,7 +1269,7 @@ $ git push origin :serverfix
 
 ```
 $ git checkout experiment
-    $ git rebase master
+$ git rebase master
     First, rewinding head to replay your work on top of it...
     Applying: added staged command
 ```
@@ -1324,7 +1324,7 @@ $ git rebase --onto master server client
 
 ```
 $ git checkout master
-    $ git merge client
+$ git merge client
 ```
 
 ![img](http://git.oschina.net/progit/figures/18333fig0333-tn.png)
@@ -1351,14 +1351,14 @@ $ git rebase master server
 
 ```
 $ git checkout master
-    $ git merge server
+$ git merge server
 ```
 
 现在 `client` 和 `server` 分支的变化都已经集成到主干分支来了，可以删掉它们了。最终我们的提交历史会变成图 3-35 的样子：
 
 ```
 $ git branch -d client
-    $ git branch -d server
+$ git branch -d server
 ```
 
 ![img](http://git.oschina.net/progit/figures/18333fig0335-tn.png)
