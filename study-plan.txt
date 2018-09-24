@@ -1,0 +1,79 @@
+学习笔记
+1.系统学习（提前规划，并做笔记）
+2.零碎知识点（及时做笔记）
+
+一、前端--------------------------------------------
+
+Vue学习
+1. 预备知识：js语法 + css + ES6语法 + webpack + npm
+
+2. vue.js
+   vue基础知识
+   axios + vue router + vuex + 异步组件 + stylus + 递归组件 + 共用组件 + 其他插件
+
+3. element ui组件库
+   amimate.css + 其他CSS框架
+   velocity.js + 其它js框架
+   highcharts.js
+
+React学习（后续）
+
+
+二、后台--------------------------------------------
+
+阿里巴巴Java编码规范 + 其他编码规范
+
+Git学习
+Nginx
+
+++ 熊复习资料（脑图）----有时间再对照看
+
+Linux
+	Linux运维命令等
+
+脚本语言
+	Python / Go
+
+Java相关
+	Java核心技术（I），包括：集合包，IO（nio、bio、aio），并发包（包括多线程相关），代理，其他等；
+	Java并发编程实战
+	深入理解Java虚拟机
+	Effective Java
+	设计模式（设计之禅）
+
+​	Netty
+	Guava框架 + Jedis（Redis）
+	Quartz学习
+	分布式架构 + 高并发（Dubbo + RPC）
+
+​	Kafka + Elasticsearch
+
+Spring相关
+	Spring Boot学习
+	Spring各种注解
+	Spring Cloud相关 + Docker
+
+数据库
+	高性能MySQL（主备 + 索引等）
+	MongoDB
+	列式数据库（Cassandra + Hadoop）
+
+计算机网络
+	《tcp/ip详解 卷一、二、三》
+
+
+三、提升--------------------------------------------
+
+算法--LeetCode
+
+英语
+
+
+四、之外--------------------------------------------
+
+心里学
+经济学
+小说
+找点兴趣爱好（吉他、画画、唱歌、打球）
+
+

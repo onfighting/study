@@ -1,7 +1,0 @@
-1. linux crontab学习
-2. springboot定时任务
-3. spring redis template
-4. springboot cache
-4. jedis客户端使用
-5. http://ifeve.com/google-guava/学习
-6. Intellij IDEA基于Springboot的远程调试
