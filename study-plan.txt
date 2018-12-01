@@ -46,7 +46,7 @@ Java相关
 	Quartz学习
 	分布式架构 + 高并发（Dubbo + RPC）
 
-​	Kafka + Elasticsearch
+​	Kafka + Elasticsearch + HBase
 
 Spring相关
 	Spring Boot学习
@@ -67,13 +67,5 @@ Spring相关
 算法--LeetCode
 
 英语
-
-
-四、之外--------------------------------------------
-
-心里学
-经济学
-小说
-找点兴趣爱好（吉他、画画、唱歌、打球）
 
 
